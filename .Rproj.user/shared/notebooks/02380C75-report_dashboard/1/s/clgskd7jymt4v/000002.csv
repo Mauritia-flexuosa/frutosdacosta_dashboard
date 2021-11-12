@@ -1,0 +1,2 @@
+"0",""
+"0","frutas %>% select(""nome popular""=""nome_popular"", ""nome científico"" = ""nome_científico"") %>% unique() %>% knitr::kable(row.names = F)"

@@ -1,0 +1,24 @@
+# Mapa
+require(leaflet)
+require(tidyverse)
+
+frutas <- read.table("/home/marcio/PROJETOS-GIT/frutosdacosta/dados_1.txt", h = T) %>% tibble %>%
+  mutate(popup_info = paste(nome_popular,"<br/>",                                               nome_científico,"<br/>",                                                 "Fase da vida:",
+                            fase_ontogenetica,"<br/>",                                               "Altitude:", srtm,"<br/>",                                               "Coordenadas: lat ", lat, " lon ", lon,"<br/>",
+                            "Observação:", obs, "<br/>"            ))
+
+mapa <- leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(data = frutas, lat = frutas$lat, lng = frutas$lon,
+                   radius = ~1.2, popup = frutas$popup_info, color = "black")%>% 
+  
+  # add a map scalebar
+  addScaleBar(position = 'topright') %>%
+  
+  # add measurement tool
+  addMeasure(
+    primaryLengthUnit = "kilometers",
+    secondaryLengthUnit = 'miles', 
+    primaryAreaUnit = "hectares",
+    secondaryAreaUnit="acres", 
+    position = 'topleft')

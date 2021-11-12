@@ -1,0 +1,101 @@
+---
+title: "Frutos da Costa"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+# Mapa
+
+Column {data-width=800}
+-----------------------------------------------------------------------
+
+### <b>Mapa</b>
+
+```{r}
+require(leaflet)
+require(tidyverse)
+
+frutas <- read.table("dados_1.txt", h = T) %>% tibble %>%
+  mutate(popup_info = paste(nome_popular,"<br/>",                                               nome_científico,"<br/>",                                                 "Fase da vida:",
+                            fase_ontogenetica,"<br/>",                                               "Altitude:", srtm,"<br/>",                                               "Coordenadas: lat ", lat, " lon ", lon,"<br/>",
+                            "Observação:", obs, "<br/>"            ))
+
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(data = frutas, lat = frutas$lat, lng = frutas$lon,
+                   radius = ~1.2, popup = frutas$popup_info, color = "black")%>% 
+  
+  # add a map scalebar
+  addScaleBar(position = 'topright') %>%
+  
+  # add measurement tool
+  addMeasure(
+    primaryLengthUnit = "kilometers",
+    secondaryLengthUnit = 'miles', 
+    primaryAreaUnit = "hectares",
+    secondaryAreaUnit="acres", 
+    position = 'topleft')
+
+```
+
+
+
+# Informações
+
+## Column {data-width=400}
+
+### <b>Riqueza de espécies</b>
+```{r}
+valueBox(dim(frutas %>% select("nome_popular") %>% unique())[1], icon = "fa-tree")
+```
+
+
+### <b>Nome das espécies</b>
+
+```{r echo = FALSE}
+
+frutas %>% select("nome popular"="nome_popular", "nome científico" = "nome_científico") %>% unique() %>% knitr::kable(row.names = F)
+```
+
+
+
+## Column {data-width=600}
+
+### <b>Quantitativos</b>
+
+
+```{r echo=FALSE, include=TRUE, size="100%"}
+frutas$nome_popular = factor(frutas$nome_popular,
+levels = names(sort(table(frutas$nome_popular), decreasing = T))
+)
+frutas %>% ggplot(aes(x=nome_popular, fill=factor(fase_ontogenetica)))+
+  geom_bar()+
+  xlab("Nome popular do fruto")+
+  ylab("Numero de árvores")+
+  ggtitle("Quantidade de árvores frutíferas na trilha da Costa da Lagoa")+
+  scale_fill_discrete(name = "Fase da vida")+
+  theme(axis.text.x = element_text(angle = 90, hjust=1))
+
+```
+
+# Pesquisa e Download dos dados
+
+```{r}
+require(DT)
+frutas %>%   select("nome popular"="nome_popular", "nome científico"="nome_científico", "longitude"="lon", "latitude"="lat") %>% 
+  datatable(
+    extensions = "Buttons", options = list(
+      dom = "Bfrtip",
+      buttons = 
+        list("copy", "print", "pdf"
+        )
+    )
+  )
+```
+
